@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 	setenv("PWD", dir, 1);
 
 	if(cd) {
-		perror("cd");
+		perror("cwdc");
 
 		return -1;
 	}
