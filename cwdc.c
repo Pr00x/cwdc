@@ -48,7 +48,6 @@ int main(int argc, char *argv[]) {
 	}
 	
 	int n = strlen(getenv("PWD")) + 1;
-	char *pwd;
 	char *oldpwd;
 	oldpwd = malloc(n);
 
