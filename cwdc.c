@@ -2,30 +2,18 @@
 #include<stdlib.h>
 #include<string.h>
 #include<unistd.h>
+#include<termios.h>
 
 int main(int argc, char *argv[]) {
-	if(argc == 2) {
-		if(strncmp(argv[1], "--help", 7) == 0 || strncmp(argv[1], "-h", 3) == 0) {
-			puts("Usage:\ncwdc -d [PATH] -c [COMMAND]");
-			
-			return 0;
-		}
-
-		puts("cwdc: missing operand.\x0ATry 'cwdc -h' or 'cwdc --help' for more information.");
-		
-		return -1;
-	}
-	else if(argc < 4) {
-		puts("cwdc: missing operand.\x0ATry 'cwdc -h' or 'cwdc --help' for more information.");
-	
-		return -1;
-	}
-
 	int opt;
 	char *dir, *command;
 
-	while((opt = getopt(argc, argv, ":d:c:")) != -1) {
+	while((opt = getopt(argc, argv, ":hd:c:")) != -1) {
 		switch(opt) {
+			case 'h':
+				puts("Usage:\ncwdc -d [PATH] -c [COMMAND]");
+
+				return 0;
 			case 'd':
 				dir = malloc(strlen(optarg) + 1);
 				strcpy(dir, optarg);
@@ -47,11 +35,19 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	
-	int n = strlen(getenv("PWD")) + 1;
+	if(dir == NULL || command == NULL) {
+		puts("cwdc: missing operand.\x0ATry 'cwdc -h' for more information.");
+
+		return -1;
+	}
+
+	struct termios orig;
+	char *pwd = getenv("PWD");
+	size_t n = strlen(pwd) + 1;
 	char *oldpwd;
 	oldpwd = malloc(n);
 
-	strcpy(oldpwd, getenv("PWD"));
+	strcpy(oldpwd, pwd);
 	oldpwd[n] = '\0';
 	setenv("OLDPWD", oldpwd, 1);
 
@@ -64,7 +60,11 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
+	tcgetattr(STDIN_FILENO, &orig);
+
 	system(command);
+
+	tcsetattr(STDIN_FILENO, TCSANOW, &orig);
 
 	free(dir);
 	free(command);
